@@ -1,6 +1,9 @@
 package dictionary
 
 type Supply struct {
-	FullName  string
-	ShortName string
+	Name         string
+	Supplier     string
+	Biomaterial  Biomaterial
+	Volume       float64
+	TestCapacity int
 }

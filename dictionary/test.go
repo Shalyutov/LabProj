@@ -5,7 +5,7 @@ type Test struct {
 	Aliases     []string
 	Indicators  []Indicator
 	Services    []Service
-	Cases       map[Biomaterial]Supply
+	Cases       []Supply
 	IsSeparated bool
 	Price       float64
 }
