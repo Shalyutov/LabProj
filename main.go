@@ -2,33 +2,58 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"labproj/dictionary"
+	"net/http"
 	"slices"
+	"strconv"
 )
 
 func main() {
 	biomaterials := []dictionary.Biomaterial{
 		{"Венозная кровь", "Кровь из вены"},
-		{"Капиллярная кровь", "Кровь из пальца"},
 	}
 	supplies := []dictionary.Supply{
-		{"Пробирка для забора венозной крови", "Гранат Био Тех", biomaterials[0], 5.0, 5},
+		{"Вакуумная пробирка для забора венозной крови", "Гранат Био Тех", biomaterials[0], 5.0, 5},
 	}
 	measures := []dictionary.Measure{
-		{"vu/r", "10^-5"},
+		{"10^12/л"},
+		{"г/л"},
+		{"%"},
+		{"10^9/л"},
+		{"пг"},
+		{"фл"},
+		{"мм/ч"},
 	}
-	indicators := []dictionary.Indicator{
-		{"Эритроциты", measures[0], 150.0, 10.0, true},
-		{"Тромбоциты", measures[0], 100.0, 60.0, true},
-		{"Гемоглобин", measures[0], 200.0, 100.0, true},
+	integerIndicators := []dictionary.IntegerIndicator{
+		{"Эритроциты (RBC)", "", measures[0], 6.0, 4.5},
+		{"Гематокрит (HCT)", "", measures[2], 48.0, 40.0},
+		{"Гемоглобин (HGB)", "", measures[1], 180.0, 130.0},
+		{"Лейкоциты (WBC)", "", measures[3], 9.0, 4.0},
+		{"Тромбоциты (PLT)", "", measures[3], 400.0, 150.0},
+		{"Эозинофилы", "", measures[2], 0.0, 0.0},
+		{"Лимфоциты", "", measures[2], 37.0, 19.0},
+		{"Моноциты", "", measures[2], 11.0, 3.0},
+		{"СОЭ по Панченкову", "", measures[6], 10.0, 2.0},
 	}
+	binaryIndicators := make([]dictionary.BinaryIndicator, 0)
+	stringIndicators := make([]dictionary.StringIndicator, 0)
 	services := []dictionary.Service{
 		{"Забор венозной крови", 350.0},
 	}
 	tests := []dictionary.Test{
-		{"Общий анализ крови", []string{"ОАК"}, indicators[0:], services[0:], supplies[0:], false, 200.0},
-		{"Анализ крови с лейкоформулой", []string{"Лейкоформула"}, indicators[0:], services[0:], supplies[0:], true, 500.0},
-		{"Анализ крови на сахар", []string{"Сахар", "Диабет"}, indicators[0:], services[0:], supplies[0:], false, 100.0},
+		{"Общий анализ крови", []string{"ОАК"}, integerIndicators[0:5], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 200.0},
+		{"Лейкоцитарная формула", []string{"Лейкоформула"}, integerIndicators[5:8], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 150.0},
+		{"СОЭ", []string{"Сахар", "Диабет"}, integerIndicators[8:], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 100.0},
+	}
+
+	r := gin.Default()
+	r.GET("/tests/:id", func(c *gin.Context) {
+		GetTest(c, tests)
+	})
+	err := r.Run()
+	if err != nil {
+		return
 	}
 
 	sum := 0.0
@@ -69,4 +94,18 @@ func main() {
 		}
 		fmt.Println(supply.Name, "\t", supply.Volume, " мл", "\t", count)
 	}
+}
+
+func GetTest(c *gin.Context, tests []dictionary.Test) {
+	index, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatus(http.StatusNotAcceptable)
+		return
+	}
+	if index >= int64(len(tests)) || index < 0 {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+	test := tests[index]
+	c.JSON(200, test)
 }

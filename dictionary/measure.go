@@ -1,9 +1,7 @@
 package dictionary
 
-// Measure Измерение
+// Measure Единица измерения
 type Measure struct {
-	// Название
-	Name string
 	// Нотация
 	Notation string
 }
