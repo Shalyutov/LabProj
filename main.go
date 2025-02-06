@@ -3,45 +3,36 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"labproj/dictionary"
+	dict "labproj/entities/dictionary"
 	"net/http"
 	"slices"
 	"strconv"
 )
 
 func main() {
-	biomaterials := []dictionary.Biomaterial{
+	biomaterials := []dict.Biomaterial{
 		{"Венозная кровь", "Кровь из вены"},
 	}
-	supplies := []dictionary.Supply{
+	supplies := []dict.Supply{
 		{"Вакуумная пробирка для забора венозной крови", "Гранат Био Тех", biomaterials[0], 5.0, 5},
 	}
-	measures := []dictionary.Measure{
-		{"10^12/л"},
-		{"г/л"},
-		{"%"},
-		{"10^9/л"},
-		{"пг"},
-		{"фл"},
-		{"мм/ч"},
+	integerIndicators := []dict.IntegerIndicator{
+		{"Эритроциты (RBC)", "10^12/л", 6.0, 4.5},
+		{"Гематокрит (HCT)", "%", 48.0, 40.0},
+		{"Гемоглобин (HGB)", "г/л", 180.0, 130.0},
+		{"Лейкоциты (WBC)", "10^9/л", 9.0, 4.0},
+		{"Тромбоциты (PLT)", "10^9/л", 400.0, 150.0},
+		{"Эозинофилы", "%", 0.0, 0.0},
+		{"Лимфоциты", "%", 37.0, 19.0},
+		{"Моноциты", "%", 11.0, 3.0},
+		{"СОЭ по Панченкову", "мм/ч", 10.0, 2.0},
 	}
-	integerIndicators := []dictionary.IntegerIndicator{
-		{"Эритроциты (RBC)", "", measures[0], 6.0, 4.5},
-		{"Гематокрит (HCT)", "", measures[2], 48.0, 40.0},
-		{"Гемоглобин (HGB)", "", measures[1], 180.0, 130.0},
-		{"Лейкоциты (WBC)", "", measures[3], 9.0, 4.0},
-		{"Тромбоциты (PLT)", "", measures[3], 400.0, 150.0},
-		{"Эозинофилы", "", measures[2], 0.0, 0.0},
-		{"Лимфоциты", "", measures[2], 37.0, 19.0},
-		{"Моноциты", "", measures[2], 11.0, 3.0},
-		{"СОЭ по Панченкову", "", measures[6], 10.0, 2.0},
-	}
-	binaryIndicators := make([]dictionary.BinaryIndicator, 0)
-	stringIndicators := make([]dictionary.StringIndicator, 0)
-	services := []dictionary.Service{
+	binaryIndicators := make([]dict.BinaryIndicator, 0)
+	stringIndicators := make([]dict.StringIndicator, 0)
+	services := []dict.Service{
 		{"Забор венозной крови", 350.0},
 	}
-	tests := []dictionary.Test{
+	tests := []dict.Test{
 		{"Общий анализ крови", []string{"ОАК"}, integerIndicators[0:5], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 200.0},
 		{"Лейкоцитарная формула", []string{"Лейкоформула"}, integerIndicators[5:8], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 150.0},
 		{"СОЭ", []string{"Сахар", "Диабет"}, integerIndicators[8:], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 100.0},
@@ -57,8 +48,8 @@ func main() {
 	}
 
 	sum := 0.0
-	consume := make(map[dictionary.Supply]int)
-	var served []dictionary.Service
+	consume := make(map[dict.Supply]int)
+	var served []dict.Service
 
 	for _, test := range tests {
 		supply := test.Cases[0]
@@ -96,7 +87,7 @@ func main() {
 	}
 }
 
-func GetTest(c *gin.Context, tests []dictionary.Test) {
+func GetTest(c *gin.Context, tests []dict.Test) {
 	index, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		c.AbortWithStatus(http.StatusNotAcceptable)
