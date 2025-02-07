@@ -10,4 +10,5 @@ type Test struct {
 	Cases             []Supply
 	IsSeparated       bool
 	Price             float64
+	Id                int
 }

@@ -6,4 +6,5 @@ type Supply struct {
 	Biomaterial  Biomaterial
 	Volume       float64
 	TestCapacity int
+	Id           int
 }

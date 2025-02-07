@@ -6,6 +6,7 @@ import (
 )
 
 type Order struct {
-	Id      uuid.UUID
-	Created time.Time
+	Id        uuid.UUID
+	CreatedAt time.Time
+	DeletedAt time.Time
 }

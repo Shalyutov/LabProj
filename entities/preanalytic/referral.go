@@ -8,8 +8,9 @@ import (
 type Referral struct {
 	Patient       *Patient
 	Id            uuid.UUID
-	Order         Order
+	Order         *Order
 	Tests         []dict.Test
+	Samples       []Sample
 	Height        int
 	Weight        int
 	TickBite      bool
