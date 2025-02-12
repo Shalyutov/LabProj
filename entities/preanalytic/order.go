@@ -8,5 +8,5 @@ import (
 type Order struct {
 	Id        uuid.UUID
 	CreatedAt time.Time
-	DeletedAt time.Time
+	DeletedAt *time.Time
 }

@@ -1,5 +1,6 @@
 CREATE TABLE orders (
-    id Uuid NOT NULL,
-    created_at Datetime NOT NULL,
-    PRIMARY KEY (id)
-);
+    id Uuid not null,
+    created_at Datetime not null,
+    deleted_at Datetime null,
+    PRIMARY KEY(id)
+)

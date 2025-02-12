@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/ydb-platform/ydb-go-sdk/v3"
+	yc "github.com/ydb-platform/ydb-go-yc"
+	"labproj/database"
 	dict "labproj/entities/dictionary"
+	"labproj/entities/preanalytic"
 	"net/http"
 	"slices"
 	"strconv"
-
-	"github.com/ydb-platform/ydb-go-sdk/v3"
-	yc "github.com/ydb-platform/ydb-go-yc"
 )
 
 func main() {
@@ -55,6 +57,19 @@ func main() {
 	defer func() {
 		_ = db.Close(ctx)
 	}()
+
+	//order1 := preanalytic.Order{Id: uuid.New(), CreatedAt: time.Now()}
+
+	ordersRepo := database.NewYdbOrderRepo(db, &ctx)
+
+	var order1 *preanalytic.Order
+	order1, err = ordersRepo.FindById(uuid.MustParse("fd1cddc8-6045-4a43-9989-cf1a1be34e6a"))
+	if err != nil {
+		panic(err)
+	}
+	if order1 != nil {
+		fmt.Println(order1.CreatedAt)
+	}
 
 	r := gin.Default()
 	r.GET("/tests/:id", func(c *gin.Context) {
