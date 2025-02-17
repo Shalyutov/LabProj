@@ -6,7 +6,7 @@ import (
 )
 
 type Order struct {
-	Id        uuid.UUID
-	CreatedAt time.Time
-	DeletedAt *time.Time
+	Id        uuid.UUID  `sql:"id"`
+	CreatedAt time.Time  `sql:"created_at"`
+	DeletedAt *time.Time `sql:"deleted_at"`
 }

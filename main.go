@@ -58,10 +58,8 @@ func main() {
 		_ = db.Close(ctx)
 	}()
 
-	//order1 := preanalytic.Order{Id: uuid.New(), CreatedAt: time.Now()}
-
-	ordersRepo := database.NewYdbOrderRepo(db, &ctx)
-
+	ydbOrm := database.NewYdbOrm(db, &ctx)
+	ordersRepo := database.NewYdbOrderRepo(ydbOrm)
 	var order1 *preanalytic.Order
 	order1, err = ordersRepo.FindById(uuid.MustParse("fd1cddc8-6045-4a43-9989-cf1a1be34e6a"))
 	if err != nil {
