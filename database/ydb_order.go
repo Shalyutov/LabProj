@@ -57,6 +57,13 @@ func (y YdbOrderRepo) FindById(id uuid.UUID) (*preanalytic.Order, error) {
 }
 
 func (y YdbOrderRepo) Delete(order preanalytic.Order) error {
-	//TODO implement me
-	panic("implement me")
+	q := `
+	  DECLARE $id AS Uuid;
+	  DELETE FROM orders
+	  WHERE id = $id;
+	`
+	params := table.NewQueryParameters(
+		table.ValueParam("$id", types.UuidValue(order.Id)),
+	)
+	return y.DB.Execute(q, params)
 }

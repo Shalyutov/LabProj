@@ -13,9 +13,10 @@ type Referral struct {
 	Tests         []dict.Test
 	Samples       []Sample
 	IssuedAt      time.Time
-	SendAt        time.Time
-	Height        int
-	Weight        int
+	DeletedAt     *time.Time
+	SendAt        *time.Time
+	Height        float64
+	Weight        float64
 	TickBite      bool
 	HIVStatus     int
 	PregnancyWeek int
