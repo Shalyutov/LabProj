@@ -7,9 +7,9 @@ import (
 )
 
 type Sample struct {
-	Id       uuid.UUID
-	Referral Referral
-	IssuedAt time.Time
-	IsValid  bool
-	Case     dictionary.Supply
+	Id       uuid.UUID         `sql:"id"`
+	Referral uuid.UUID         `sql:"referral_id"`
+	IssuedAt time.Time         `sql:"issued_at"`
+	IsValid  *bool             `sql:"is_valid"`
+	Case     dictionary.Supply `sql:"case_id"`
 }

@@ -6,10 +6,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	yc "github.com/ydb-platform/ydb-go-yc"
-	"labproj/database"
 	"labproj/entities"
 	dict "labproj/entities/dictionary"
 	"labproj/entities/preanalytic"
+	orm "labproj/ydb"
 	"net/http"
 	"strconv"
 )
@@ -31,8 +31,9 @@ func main() {
 		_ = db.Close(ctx)
 	}()
 
-	ydbOrm := database.NewYdbOrm(db, &ctx)
-	ordersRepo := database.NewYdbOrderRepo(ydbOrm)
+	ydbOrm := orm.NewYdbOrm(db, &ctx)
+	ordersRepo := orm.NewYdbOrderRepo(ydbOrm)
+	referralsRepo := orm.ReferralRepo{DB: ydbOrm}
 
 	r := gin.Default()
 	r.GET("/tests/:id", func(c *gin.Context) {
@@ -60,6 +61,29 @@ func main() {
 		}
 		c.JSON(200, order)
 	})
+	r.GET("/referrals/:id", func(c *gin.Context) {
+		referralIdParam := c.Param("id")
+		if referralIdParam == "" {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		referralId, err := uuid.Parse(referralIdParam)
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		var referral *preanalytic.Referral
+		referral, err = referralsRepo.FindById(referralId)
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadGateway)
+		}
+		if referral == nil {
+			c.AbortWithStatus(http.StatusNotFound)
+		}
+		c.JSON(200, referral)
+	})
+
 	err = r.Run()
 	if err != nil {
 		return

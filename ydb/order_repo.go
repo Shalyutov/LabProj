@@ -1,4 +1,4 @@
-package database
+package ydb
 
 import (
 	"github.com/google/uuid"
@@ -9,15 +9,15 @@ import (
 	"labproj/entities/preanalytic"
 )
 
-type YdbOrderRepo struct {
-	DB *YdbOrm
+type OrderRepo struct {
+	DB *Orm
 }
 
-func NewYdbOrderRepo(orm *YdbOrm) *YdbOrderRepo {
-	return &YdbOrderRepo{orm}
+func NewYdbOrderRepo(orm *Orm) *OrderRepo {
+	return &OrderRepo{orm}
 }
 
-func (y YdbOrderRepo) Create(order preanalytic.Order) error {
+func (y OrderRepo) Create(order preanalytic.Order) error {
 	q := `
 	  DECLARE $id AS Uuid;
 	  DECLARE $created AS Datetime;
@@ -31,7 +31,7 @@ func (y YdbOrderRepo) Create(order preanalytic.Order) error {
 	return y.DB.Execute(q, params)
 }
 
-func (y YdbOrderRepo) FindById(id uuid.UUID) (*preanalytic.Order, error) {
+func (y OrderRepo) FindById(id uuid.UUID) (*preanalytic.Order, error) {
 	q := `
 		DECLARE $id AS Uuid;
 		SELECT
@@ -56,7 +56,7 @@ func (y YdbOrderRepo) FindById(id uuid.UUID) (*preanalytic.Order, error) {
 	return &orders[0], err
 }
 
-func (y YdbOrderRepo) Delete(order preanalytic.Order) error {
+func (y OrderRepo) Delete(order preanalytic.Order) error {
 	q := `
 	  DECLARE $id AS Uuid;
 	  DELETE FROM orders
