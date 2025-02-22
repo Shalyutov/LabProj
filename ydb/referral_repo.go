@@ -1,10 +1,12 @@
 package ydb
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/query"
-	dict "labproj/entities/dictionary"
+	"github.com/ydb-platform/ydb-go-sdk/v3/table"
+	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
 	"labproj/entities/preanalytic"
 )
 
@@ -12,7 +14,7 @@ type ReferralRepo struct {
 	DB *Orm
 }
 
-func NewReferral(referral Referral, tests []int, samples []preanalytic.ReferralSample) *preanalytic.Referral {
+func NewReferral(referral Referral, tests []preanalytic.ReferralTest, samples []preanalytic.ReferralSample) *preanalytic.Referral {
 	return &preanalytic.Referral{
 		Id:            referral.Id,
 		IssuedAt:      referral.IssuedAt,
@@ -30,9 +32,38 @@ func NewReferral(referral Referral, tests []int, samples []preanalytic.ReferralS
 	}
 }
 
-func (r ReferralRepo) Create(referral preanalytic.Referral) error {
-	//TODO implement me
-	panic("implement me")
+func (r ReferralRepo) Save(referral Referral) error {
+	q := `
+		DECLARE $id AS Uuid;
+		DECLARE $order_id AS Uuid;
+		DECLARE $patient_id AS Uuid;
+		DECLARE $issued_at AS Datetime;
+		DECLARE $send_at AS Datetime;
+		DECLARE $deleted_at AS Datetime;
+		DECLARE $height AS Float;
+		DECLARE $weight AS Float;
+		DECLARE $tick_bite AS Bool;
+		DECLARE $hiv_status AS Int;
+		DECLARE $pregnancy_week AS Int;
+		UPSERT INTO referrals ( id, order_id, patient_id, issued_at, send_at, deleted_at, 
+			height, weight, tick_bite, hiv_status, pregnancy_week )
+		VALUES ( $id, $order_id, $patient_id, $issued_at, $send_at, $deleted_at, 
+			$height, $weight, $tick_bite, $hiv_status, $pregnancy_week );
+	`
+	params := table.NewQueryParameters(
+		table.ValueParam("$id", types.UuidValue(referral.Id)),
+		table.ValueParam("$order_id", types.NullableUUIDTypedValue(referral.Order)),
+		table.ValueParam("$patient_id", types.NullableUUIDTypedValue(referral.Patient)),
+		table.ValueParam("$issued_at", types.DatetimeValueFromTime(referral.IssuedAt)),
+		table.ValueParam("$send_at", types.NullableDatetimeValueFromTime(referral.SendAt)),
+		table.ValueParam("$deleted_at", types.NullableDatetimeValueFromTime(referral.DeletedAt)),
+		table.ValueParam("$height", types.NullableFloatValue(referral.Height)),
+		table.ValueParam("$weight", types.NullableFloatValue(referral.Weight)),
+		table.ValueParam("$tick_bite", types.NullableBoolValue(referral.TickBite)),
+		table.ValueParam("$hiv_status", types.NullableInt8Value(referral.HIVStatus)),
+		table.ValueParam("$pregnancy_week", types.NullableInt8Value(referral.PregnancyWeek)),
+	)
+	return r.DB.Execute(q, params)
 }
 
 func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
@@ -73,13 +104,9 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 			Param("$id").Uuid(referrals[0].Id).
 			Build(),
 	)
-	referralTests, err := Query[ReferralTest](r.DB, q, params)
+	referralTests, err := Query[preanalytic.ReferralTest](r.DB, q, params)
 	if err != nil {
 		panic(err)
-	}
-	tests := make([]int, 0)
-	for _, referralTest := range referralTests {
-		tests = append(tests, referralTest.TestId)
 	}
 
 	q = `
@@ -101,61 +128,53 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 		panic(err)
 	}
 
-	referral := NewReferral(referrals[0], tests, referralSamples)
+	referral := NewReferral(referrals[0], referralTests, referralSamples)
 	return referral, nil
 }
 
-func (r ReferralRepo) GetSamples(referral preanalytic.Referral) ([]preanalytic.Sample, error) {
-	//TODO implement me
-	panic("implement me")
+func (r ReferralRepo) AddTests(id uuid.UUID, tests []int) error {
+	err := r.DB.DB.Table().Do(
+		*r.DB.Ctx,
+		func(ctx context.Context, s table.Session) (err error) {
+			rows := make([]types.Value, 0, len(tests))
+			for _, test := range tests {
+				rows = append(rows, types.StructValue(
+					types.StructFieldValue("referral_id", types.UuidValue(id)),
+					types.StructFieldValue("test_id", types.Int32Value(int32(test))),
+				))
+			}
+			return s.BulkUpsert(ctx, r.DB.DB.Scheme().Database()+"/referral_tests", types.ListValue(rows...))
+		},
+	)
+	return err
 }
 
-func (r ReferralRepo) GetTests(referral preanalytic.Referral) ([]dict.Test, error) {
-	//TODO implement me
-	panic("implement me")
+func (r ReferralRepo) DeleteTests(id uuid.UUID, tests []int) error {
+	q := `
+		DECLARE $id AS Uuid;
+		DECLARE $tests AS List<Int32>;
+		DELETE FROM referral_tests 
+		WHERE referral_id = $id AND test_id in $tests;
+	`
+	testList := make([]types.Value, 0, len(tests))
+	for _, test := range tests {
+		testList = append(testList, types.Int32Value(int32(test)))
+	}
+	params := table.NewQueryParameters(
+		table.ValueParam("$id", types.UuidValue(id)),
+		table.ValueParam("$tests", types.ListValue(testList...)),
+	)
+	return r.DB.Execute(q, params)
 }
 
-func (r ReferralRepo) GetPatient(referral preanalytic.Referral) (preanalytic.Patient, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) SetPatient(referral preanalytic.Referral, patient preanalytic.Patient) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) GetOrder(referral preanalytic.Referral) (preanalytic.Order, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) SetOrder(referral preanalytic.Referral, order preanalytic.Order) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) AddTest(referral preanalytic.Referral, test dict.Test) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) AddSample(referral preanalytic.Referral, sample preanalytic.Sample) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) DeleteTest(referral preanalytic.Referral, test dict.Test) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) DeleteSample(referral preanalytic.Referral, sample preanalytic.Sample) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r ReferralRepo) Delete(referral preanalytic.Referral) error {
-	//TODO implement me
-	panic("implement me")
+func (r ReferralRepo) Delete(id uuid.UUID) error {
+	q := `
+		DECLARE $id AS Uuid;
+		DELETE FROM referrals 
+		WHERE id = $id;
+	`
+	params := table.NewQueryParameters(
+		table.ValueParam("$id", types.UuidValue(id)),
+	)
+	return r.DB.Execute(q, params)
 }

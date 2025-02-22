@@ -32,8 +32,13 @@ func main() {
 	}()
 
 	ydbOrm := orm.NewYdbOrm(db, &ctx)
-	ordersRepo := orm.NewYdbOrderRepo(ydbOrm)
+	ordersRepo := orm.OrderRepo{DB: ydbOrm}
 	referralsRepo := orm.ReferralRepo{DB: ydbOrm}
+
+	err = referralsRepo.DeleteTests(uuid.MustParse("3e152120-781f-4a66-b761-49dd2ea9e203"), []int{6, 7, 9})
+	if err != nil {
+		return
+	}
 
 	r := gin.Default()
 	r.GET("/tests/:id", func(c *gin.Context) {
@@ -76,7 +81,7 @@ func main() {
 		var referral *preanalytic.Referral
 		referral, err = referralsRepo.FindById(referralId)
 		if err != nil {
-			c.AbortWithStatus(http.StatusBadGateway)
+			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		if referral == nil {
 			c.AbortWithStatus(http.StatusNotFound)

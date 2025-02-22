@@ -7,11 +7,7 @@ import (
 )
 
 type Annotated interface {
-	preanalytic.Order | Referral | preanalytic.Patient | Sample | ReferralTest | preanalytic.ReferralSample
-}
-
-type ReferralTest struct {
-	TestId int `sql:"test_id"`
+	preanalytic.Order | Referral | preanalytic.Patient | preanalytic.ReferralTest | preanalytic.ReferralSample
 }
 
 type Referral struct {
@@ -21,17 +17,9 @@ type Referral struct {
 	IssuedAt      time.Time  `sql:"issued_at"`
 	DeletedAt     *time.Time `sql:"deleted_at"`
 	SendAt        *time.Time `sql:"send_at"`
-	Height        *float64   `sql:"height"`
-	Weight        *float64   `sql:"weight"`
+	Height        *float32   `sql:"height"`
+	Weight        *float32   `sql:"weight"`
 	TickBite      *bool      `sql:"tick_bite"`
-	HIVStatus     *int       `sql:"hiv_status"`
-	PregnancyWeek *int       `sql:"pregnancy_week"`
-}
-
-type Sample struct {
-	Id       uuid.UUID `sql:"id"`
-	Referral uuid.UUID `sql:"referral_id"`
-	IssuedAt time.Time `sql:"issued_at"`
-	IsValid  *bool     `sql:"is_valid"`
-	Case     int       `sql:"case_id"`
+	HIVStatus     *int8      `sql:"hiv_status"`
+	PregnancyWeek *int8      `sql:"pregnancy_week"`
 }

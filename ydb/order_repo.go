@@ -13,10 +13,6 @@ type OrderRepo struct {
 	DB *Orm
 }
 
-func NewYdbOrderRepo(orm *Orm) *OrderRepo {
-	return &OrderRepo{orm}
-}
-
 func (y OrderRepo) Create(order preanalytic.Order) error {
 	q := `
 	  DECLARE $id AS Uuid;
@@ -56,14 +52,14 @@ func (y OrderRepo) FindById(id uuid.UUID) (*preanalytic.Order, error) {
 	return &orders[0], err
 }
 
-func (y OrderRepo) Delete(order preanalytic.Order) error {
+func (y OrderRepo) Delete(id uuid.UUID) error {
 	q := `
 	  DECLARE $id AS Uuid;
 	  DELETE FROM orders
 	  WHERE id = $id;
 	`
 	params := table.NewQueryParameters(
-		table.ValueParam("$id", types.UuidValue(order.Id)),
+		table.ValueParam("$id", types.UuidValue(id)),
 	)
 	return y.DB.Execute(q, params)
 }
