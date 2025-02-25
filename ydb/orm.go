@@ -5,6 +5,7 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/query"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
+	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
 )
 
 type Orm struct {
@@ -29,6 +30,16 @@ func (y Orm) Execute(query string, parameters *table.QueryParameters) error {
 			}
 			return res.Close()
 		}, table.WithIdempotent(),
+	)
+	return err
+}
+
+func (y Orm) BulkUpsert(ydbTable string, rows types.Value) error {
+	err := y.DB.Table().Do(
+		*y.Ctx,
+		func(ctx context.Context, s table.Session) (err error) {
+			return s.BulkUpsert(ctx, y.DB.Scheme().Database()+"/"+ydbTable, rows)
+		},
 	)
 	return err
 }

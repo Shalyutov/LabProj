@@ -2,14 +2,13 @@ package preanalytic
 
 import (
 	"github.com/google/uuid"
-	"labproj/entities/dictionary"
 	"time"
 )
 
 type Sample struct {
-	Id       uuid.UUID         `sql:"id"`
-	Referral uuid.UUID         `sql:"referral_id"`
-	IssuedAt time.Time         `sql:"issued_at"`
-	IsValid  *bool             `sql:"is_valid"`
-	Case     dictionary.Supply `sql:"case_id"`
+	Id       uuid.UUID `sql:"id" json:"id"`
+	Referral uuid.UUID `sql:"referral_id" json:"referralId"`
+	IssuedAt time.Time `sql:"issued_at" json:"issuedAt"`
+	IsValid  *bool     `sql:"is_valid" json:"isValid"`
+	Case     int32     `sql:"case_id" json:"caseId"`
 }

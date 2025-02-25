@@ -1,7 +1,6 @@
 package ydb
 
 import (
-	"context"
 	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/query"
@@ -14,25 +13,31 @@ type ReferralRepo struct {
 	DB *Orm
 }
 
-func NewReferral(referral Referral, tests []preanalytic.ReferralTest, samples []preanalytic.ReferralSample) *preanalytic.Referral {
+func NewReferral(referral preanalytic.BaseReferral, tests []preanalytic.ReferralTest, samples []preanalytic.ReferralSample) *preanalytic.Referral {
 	return &preanalytic.Referral{
-		Id:            referral.Id,
-		IssuedAt:      referral.IssuedAt,
-		DeletedAt:     referral.DeletedAt,
-		SendAt:        referral.SendAt,
-		Height:        referral.Height,
-		Weight:        referral.Weight,
-		TickBite:      referral.TickBite,
-		HIVStatus:     referral.HIVStatus,
-		PregnancyWeek: referral.PregnancyWeek,
-		Patient:       referral.Patient,
-		Order:         referral.Order,
-		Tests:         tests,
-		Samples:       samples,
+		Base:    referral,
+		Tests:   tests,
+		Samples: samples,
 	}
 }
 
-func (r ReferralRepo) Save(referral Referral) error {
+func (r ReferralRepo) Save(referral preanalytic.Referral) error {
+	err := r.SaveReferral(referral.Base)
+	if err != nil {
+		return err
+	}
+	tests := make([]int, len(referral.Tests))
+	for _, value := range referral.Tests {
+		tests = append(tests, value.TestId)
+	}
+	err = r.AddTests(referral.Base.Id, tests)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r ReferralRepo) SaveReferral(referral preanalytic.BaseReferral) error {
 	q := `
 		DECLARE $id AS Uuid;
 		DECLARE $order_id AS Uuid;
@@ -82,7 +87,7 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 			Param("$id").Uuid(id).
 			Build(),
 	)
-	referrals, err := Query[Referral](r.DB, q, params)
+	referrals, err := Query[preanalytic.BaseReferral](r.DB, q, params)
 	if err != nil {
 		panic(err)
 	}
@@ -133,20 +138,14 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 }
 
 func (r ReferralRepo) AddTests(id uuid.UUID, tests []int) error {
-	err := r.DB.DB.Table().Do(
-		*r.DB.Ctx,
-		func(ctx context.Context, s table.Session) (err error) {
-			rows := make([]types.Value, 0, len(tests))
-			for _, test := range tests {
-				rows = append(rows, types.StructValue(
-					types.StructFieldValue("referral_id", types.UuidValue(id)),
-					types.StructFieldValue("test_id", types.Int32Value(int32(test))),
-				))
-			}
-			return s.BulkUpsert(ctx, r.DB.DB.Scheme().Database()+"/referral_tests", types.ListValue(rows...))
-		},
-	)
-	return err
+	rows := make([]types.Value, 0, len(tests))
+	for _, test := range tests {
+		rows = append(rows, types.StructValue(
+			types.StructFieldValue("referral_id", types.UuidValue(id)),
+			types.StructFieldValue("test_id", types.Int32Value(int32(test))),
+		))
+	}
+	return r.DB.BulkUpsert("referral_tests", types.ListValue(rows...))
 }
 
 func (r ReferralRepo) DeleteTests(id uuid.UUID, tests []int) error {

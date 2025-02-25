@@ -9,6 +9,8 @@ import (
 	"labproj/entities"
 	dict "labproj/entities/dictionary"
 	"labproj/entities/preanalytic"
+	"labproj/handlers"
+	"labproj/internal"
 	orm "labproj/ydb"
 	"net/http"
 	"strconv"
@@ -32,40 +34,19 @@ func main() {
 	}()
 
 	ydbOrm := orm.NewYdbOrm(db, &ctx)
-	ordersRepo := orm.OrderRepo{DB: ydbOrm}
-	referralsRepo := orm.ReferralRepo{DB: ydbOrm}
 
-	err = referralsRepo.DeleteTests(uuid.MustParse("3e152120-781f-4a66-b761-49dd2ea9e203"), []int{6, 7, 9})
-	if err != nil {
-		return
-	}
+	var ordersRepo internal.OrderRepo = orm.OrderRepo{DB: ydbOrm}
+	referralsRepo := orm.ReferralRepo{DB: ydbOrm}
+	//patientsRepo := orm.PatientRepo{DB: ydbOrm}
+	//samplesRepo := orm.SampleRepo{DB: ydbOrm}
 
 	r := gin.Default()
 	r.GET("/tests/:id", func(c *gin.Context) {
 		GetTest(c, template.Tests)
 	})
-	r.GET("/orders/:id", func(c *gin.Context) {
-		orderIdParam := c.Param("id")
-		if orderIdParam == "" {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-		orderId, err := uuid.Parse(orderIdParam)
-		if err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
 
-		var order *preanalytic.Order
-		order, err = ordersRepo.FindById(orderId)
-		if err != nil {
-			c.AbortWithStatus(http.StatusBadGateway)
-		}
-		if order == nil {
-			c.AbortWithStatus(http.StatusNotFound)
-		}
-		c.JSON(200, order)
-	})
+	handlers.ConfigureOrderEndpoints(r, &ordersRepo)
+
 	r.GET("/referrals/:id", func(c *gin.Context) {
 		referralIdParam := c.Param("id")
 		if referralIdParam == "" {

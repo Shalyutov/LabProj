@@ -13,7 +13,7 @@ type OrderRepo struct {
 	DB *Orm
 }
 
-func (y OrderRepo) Create(order preanalytic.Order) error {
+func (y OrderRepo) Save(order preanalytic.Order) error {
 	q := `
 	  DECLARE $id AS Uuid;
 	  DECLARE $created AS Datetime;
