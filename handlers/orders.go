@@ -12,6 +12,9 @@ func ConfigureOrderEndpoints(router *gin.Engine, repo *internal.OrderRepo) {
 	router.GET("/orders/:id", func(c *gin.Context) {
 		GetOrder(c, *repo)
 	})
+	router.GET("/orders", func(c *gin.Context) {
+		GetOrders(c, *repo)
+	})
 	router.POST("/orders", func(c *gin.Context) {
 		SaveOrder(c, *repo)
 	})
@@ -41,6 +44,14 @@ func GetOrder(c *gin.Context, repo internal.OrderRepo) {
 		c.AbortWithStatus(http.StatusNotFound)
 	}
 	c.JSON(http.StatusOK, order)
+}
+
+func GetOrders(c *gin.Context, repo internal.OrderRepo) {
+	orders, err := repo.GetAll()
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadGateway)
+	}
+	c.JSON(http.StatusOK, orders)
 }
 
 func SaveOrder(c *gin.Context, repo internal.OrderRepo) {

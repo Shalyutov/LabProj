@@ -12,26 +12,28 @@ type Referral struct {
 }
 
 type BaseReferral struct {
-	Patient       *uuid.UUID `sql:"patient_id" json:"patient"`
-	Id            uuid.UUID  `sql:"id" json:"id"`
-	Order         *uuid.UUID `sql:"order_id" json:"order"`
-	IssuedAt      time.Time  `sql:"issued_at" json:"issuedAt"`
-	DeletedAt     *time.Time `sql:"deleted_at" json:"deletedAt"`
-	SendAt        *time.Time `sql:"send_at" json:"sendAt"`
-	Height        *float32   `sql:"height" json:"height"`
-	Weight        *float32   `sql:"weight" json:"weight"`
-	TickBite      *bool      `sql:"tick_bite" json:"tickBite"`
-	HIVStatus     *int8      `sql:"hiv_status" json:"HIVStatus"`
-	PregnancyWeek *int8      `sql:"pregnancy_week" json:"pregnancyWeek"`
+	Patient       *uuid.UUID `sql:"patient_id" json:"Patient"`
+	Id            uuid.UUID  `sql:"id" json:"Id" binding:"required"`
+	Order         *uuid.UUID `sql:"order_id" json:"Order"`
+	IssuedAt      time.Time  `sql:"issued_at" json:"IssuedAt" binding:"required"`
+	DeletedAt     *time.Time `sql:"deleted_at" json:"DeletedAt"`
+	SendAt        *time.Time `sql:"send_at" json:"SendAt"`
+	Height        *float32   `sql:"height" json:"Height"`
+	Weight        *float32   `sql:"weight" json:"Weight"`
+	TickBite      *bool      `sql:"tick_bite" json:"TickBite"`
+	HIVStatus     *int32     `sql:"hiv_status" json:"HIVStatus"`
+	PregnancyWeek *int32     `sql:"pregnancy_week" json:"PregnancyWeek"`
 }
 
 type ReferralSample struct {
-	Id       uuid.UUID `sql:"id" json:"id"`
-	IssuedAt time.Time `sql:"issued_at" json:"issuedAt"`
-	IsValid  *bool     `sql:"is_valid" json:"isValid"`
-	Case     int       `sql:"case_id" json:"caseId"`
+	Id         uuid.UUID `sql:"id" json:"Id" binding:"required"`
+	ReferralId uuid.UUID `sql:"referral_id" json:"ReferralId" binding:"required"`
+	IssuedAt   time.Time `sql:"issued_at" json:"IssuedAt" binding:"required"`
+	IsValid    *bool     `sql:"is_valid" json:"IsValid"`
+	Case       int32     `sql:"case_id" json:"Case" binding:"required"`
 }
 
 type ReferralTest struct {
-	TestId int `sql:"test_id" json:"testId"`
+	ReferralId uuid.UUID `sql:"referral_id" json:"ReferralId" binding:"required"`
+	TestId     int32     `sql:"test_id" json:"TestId" binding:"required"`
 }

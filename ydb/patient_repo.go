@@ -16,17 +16,17 @@ type PatientRepo struct {
 func (p PatientRepo) Save(patient preanalytic.Patient) error {
 	q := `
 		DECLARE $id AS Uuid;
-		DECLARE $surname AS Utf8;
-		DECLARE $name AS Utf8;
-		DECLARE $lastname AS Utf8;
-		DECLARE $gender AS Utf8;
-		DECLARE $email AS Utf8;
-		DECLARE $representative AS Utf8;
-		DECLARE $document AS Uint64;
-		DECLARE $phone AS Uint64;
-		DECLARE $birth_year AS Int;
-		DECLARE $birth_month AS Int;
-		DECLARE $birth_day AS Int;
+		DECLARE $surname AS Utf8?;
+		DECLARE $name AS Utf8?;
+		DECLARE $lastname AS Utf8?;
+		DECLARE $gender AS Utf8?;
+		DECLARE $email AS Utf8?;
+		DECLARE $representative AS Utf8?;
+		DECLARE $document AS Uint64?;
+		DECLARE $phone AS Uint64?;
+		DECLARE $birth_year AS Int?;
+		DECLARE $birth_month AS Int?;
+		DECLARE $birth_day AS Int?;
 		UPSERT INTO patients ( id, surname, name, lastname, gender, email, 
 			representative, document, phone, birth_year, birth_month, birth_day )
 		VALUES ( $id, $surname, $name, $lastname, $gender, $email, 
@@ -73,6 +73,25 @@ func (p PatientRepo) FindById(id uuid.UUID) (*preanalytic.Patient, error) {
 		return nil, nil
 	}
 	return &patients[0], err
+}
+
+func (p PatientRepo) GetAll() ([]preanalytic.Patient, error) {
+	q := `
+		SELECT
+			id, surname, name, lastname, gender, email, 
+			representative, document, phone, birth_year, birth_month, birth_day
+		FROM
+			patients
+	`
+	params := query.WithParameters(
+		ydb.ParamsBuilder().
+			Build(),
+	)
+	patients, err := Query[preanalytic.Patient](p.DB, q, params)
+	if err != nil {
+		return nil, err
+	}
+	return patients, err
 }
 
 func (p PatientRepo) DeleteById(id uuid.UUID) error {

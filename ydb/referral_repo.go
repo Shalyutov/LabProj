@@ -13,8 +13,8 @@ type ReferralRepo struct {
 	DB *Orm
 }
 
-func NewReferral(referral preanalytic.BaseReferral, tests []preanalytic.ReferralTest, samples []preanalytic.ReferralSample) *preanalytic.Referral {
-	return &preanalytic.Referral{
+func NewReferral(referral preanalytic.BaseReferral, tests []preanalytic.ReferralTest, samples []preanalytic.ReferralSample) preanalytic.Referral {
+	return preanalytic.Referral{
 		Base:    referral,
 		Tests:   tests,
 		Samples: samples,
@@ -28,7 +28,7 @@ func (r ReferralRepo) Save(referral preanalytic.Referral) error {
 	}
 	tests := make([]int, len(referral.Tests))
 	for _, value := range referral.Tests {
-		tests = append(tests, value.TestId)
+		tests = append(tests, int(value.TestId))
 	}
 	err = r.AddTests(referral.Base.Id, tests)
 	if err != nil {
@@ -40,16 +40,16 @@ func (r ReferralRepo) Save(referral preanalytic.Referral) error {
 func (r ReferralRepo) SaveReferral(referral preanalytic.BaseReferral) error {
 	q := `
 		DECLARE $id AS Uuid;
-		DECLARE $order_id AS Uuid;
-		DECLARE $patient_id AS Uuid;
+		DECLARE $order_id AS Uuid?;
+		DECLARE $patient_id AS Uuid?;
 		DECLARE $issued_at AS Datetime;
-		DECLARE $send_at AS Datetime;
-		DECLARE $deleted_at AS Datetime;
-		DECLARE $height AS Float;
-		DECLARE $weight AS Float;
-		DECLARE $tick_bite AS Bool;
-		DECLARE $hiv_status AS Int;
-		DECLARE $pregnancy_week AS Int;
+		DECLARE $send_at AS Datetime?;
+		DECLARE $deleted_at AS Datetime?;
+		DECLARE $height AS Float?;
+		DECLARE $weight AS Float?;
+		DECLARE $tick_bite AS Bool?;
+		DECLARE $hiv_status AS Int?;
+		DECLARE $pregnancy_week AS Int?;
 		UPSERT INTO referrals ( id, order_id, patient_id, issued_at, send_at, deleted_at, 
 			height, weight, tick_bite, hiv_status, pregnancy_week )
 		VALUES ( $id, $order_id, $patient_id, $issued_at, $send_at, $deleted_at, 
@@ -65,8 +65,8 @@ func (r ReferralRepo) SaveReferral(referral preanalytic.BaseReferral) error {
 		table.ValueParam("$height", types.NullableFloatValue(referral.Height)),
 		table.ValueParam("$weight", types.NullableFloatValue(referral.Weight)),
 		table.ValueParam("$tick_bite", types.NullableBoolValue(referral.TickBite)),
-		table.ValueParam("$hiv_status", types.NullableInt8Value(referral.HIVStatus)),
-		table.ValueParam("$pregnancy_week", types.NullableInt8Value(referral.PregnancyWeek)),
+		table.ValueParam("$hiv_status", types.NullableInt32Value(referral.HIVStatus)),
+		table.ValueParam("$pregnancy_week", types.NullableInt32Value(referral.PregnancyWeek)),
 	)
 	return r.DB.Execute(q, params)
 }
@@ -98,7 +98,7 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 	q = `
 		DECLARE $id AS Uuid;
 		SELECT
-			test_id
+			referral_id, test_id
 		FROM
 			referral_tests
 		WHERE 
@@ -117,7 +117,7 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 	q = `
 		DECLARE $id AS Uuid;
 		SELECT
-			id, issued_at, is_valid, case_id
+			id, referral_id, issued_at, is_valid, case_id
 		FROM
 			samples
 		WHERE 
@@ -134,7 +134,7 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 	}
 
 	referral := NewReferral(referrals[0], referralTests, referralSamples)
-	return referral, nil
+	return &referral, nil
 }
 
 func (r ReferralRepo) AddTests(id uuid.UUID, tests []int) error {
@@ -176,4 +176,75 @@ func (r ReferralRepo) Delete(id uuid.UUID) error {
 		table.ValueParam("$id", types.UuidValue(id)),
 	)
 	return r.DB.Execute(q, params)
+}
+
+func (r ReferralRepo) GetAll() ([]preanalytic.Referral, error) {
+	q := `
+		SELECT
+			id, issued_at, order_id, hiv_status, patient_id, 
+			deleted_at, send_at, height, weight, tick_bite, pregnancy_week
+		FROM
+			referrals
+	`
+	params := query.WithParameters(
+		ydb.ParamsBuilder().
+			Build(),
+	)
+	referrals, err := Query[preanalytic.BaseReferral](r.DB, q, params)
+	if err != nil {
+		panic(err)
+	}
+
+	q = `
+		SELECT
+			referral_id, test_id
+		FROM
+			referral_tests
+	`
+	params = query.WithParameters(
+		ydb.ParamsBuilder().
+			Build(),
+	)
+	referralTests, err := Query[preanalytic.ReferralTest](r.DB, q, params)
+	if err != nil {
+		panic(err)
+	}
+
+	tests := make(map[uuid.UUID][]preanalytic.ReferralTest, len(referrals))
+	for _, referralTest := range referralTests {
+		if _, ok := tests[referralTest.ReferralId]; !ok {
+			tests[referralTest.ReferralId] = make([]preanalytic.ReferralTest, 0)
+		}
+		tests[referralTest.ReferralId] = append(tests[referralTest.ReferralId], referralTest)
+	}
+
+	q = `
+		SELECT
+			id, referral_id, issued_at, is_valid, case_id
+		FROM
+			samples
+	`
+	params = query.WithParameters(
+		ydb.ParamsBuilder().
+			Build(),
+	)
+	referralSamples, err := Query[preanalytic.ReferralSample](r.DB, q, params)
+	if err != nil {
+		panic(err)
+	}
+	samples := make(map[uuid.UUID][]preanalytic.ReferralSample, len(referrals))
+	for _, referralSample := range referralSamples {
+		if _, ok := samples[referralSample.ReferralId]; !ok {
+			samples[referralSample.ReferralId] = make([]preanalytic.ReferralSample, 0)
+		}
+		samples[referralSample.ReferralId] = append(samples[referralSample.ReferralId], referralSample)
+	}
+
+	allReferrals := make([]preanalytic.Referral, 0, len(referrals))
+	for _, base := range referrals {
+		referral := NewReferral(base, tests[base.Id], samples[base.Id])
+		allReferrals = append(allReferrals, referral)
+	}
+
+	return allReferrals, nil
 }

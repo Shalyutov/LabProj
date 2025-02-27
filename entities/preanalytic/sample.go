@@ -6,9 +6,9 @@ import (
 )
 
 type Sample struct {
-	Id       uuid.UUID `sql:"id" json:"id"`
-	Referral uuid.UUID `sql:"referral_id" json:"referralId"`
-	IssuedAt time.Time `sql:"issued_at" json:"issuedAt"`
-	IsValid  *bool     `sql:"is_valid" json:"isValid"`
-	Case     int32     `sql:"case_id" json:"caseId"`
+	Id       uuid.UUID `sql:"id" json:"Id" binding:"required"`
+	Referral uuid.UUID `sql:"referral_id" json:"Referral" binding:"required"`
+	IssuedAt time.Time `sql:"issued_at" json:"IssuedAt" binding:"required"`
+	IsValid  *bool     `sql:"is_valid" json:"IsValid"`
+	Case     int32     `sql:"case_id" json:"Case" binding:"required"`
 }

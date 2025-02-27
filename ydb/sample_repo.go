@@ -18,9 +18,9 @@ func (s SampleRepo) Save(sample preanalytic.Sample) error {
 		DECLARE $id AS Uuid;
 		DECLARE $referral_id AS Uuid;
 		DECLARE $issued_at AS Datetime;
-		DECLARE $is_valid AS Bool;
+		DECLARE $is_valid AS Bool?;
 		DECLARE $case_id AS int;
-		UPSERT INTO patients ( id, referral_id, issued_at, is_valid, case_id )
+		UPSERT INTO samples ( id, referral_id, issued_at, is_valid, case_id )
 		VALUES ( $id, $referral_id, $issued_at, $is_valid, $case_id );
 	`
 	params := table.NewQueryParameters(
@@ -71,6 +71,24 @@ func (s SampleRepo) FindAllByReferralId(id uuid.UUID) ([]preanalytic.Sample, err
 	params := query.WithParameters(
 		ydb.ParamsBuilder().
 			Param("$id").Uuid(id).
+			Build(),
+	)
+	samples, err := Query[preanalytic.Sample](s.DB, q, params)
+	if err != nil {
+		return nil, err
+	}
+	return samples, err
+}
+
+func (s SampleRepo) GetAll() ([]preanalytic.Sample, error) {
+	q := `
+		SELECT
+			id, referral_id, issued_at, is_valid, case_id
+		FROM
+			samples
+	`
+	params := query.WithParameters(
+		ydb.ParamsBuilder().
 			Build(),
 	)
 	samples, err := Query[preanalytic.Sample](s.DB, q, params)

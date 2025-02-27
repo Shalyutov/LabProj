@@ -63,3 +63,21 @@ func (y OrderRepo) Delete(id uuid.UUID) error {
 	)
 	return y.DB.Execute(q, params)
 }
+
+func (y OrderRepo) GetAll() ([]preanalytic.Order, error) {
+	q := `
+		SELECT
+			id, created_at, deleted_at
+		FROM
+			orders
+	`
+	params := query.WithParameters(
+		ydb.ParamsBuilder().
+			Build(),
+	)
+	orders, err := Query[preanalytic.Order](y.DB, q, params)
+	if err != nil {
+		return nil, err
+	}
+	return orders, err
+}

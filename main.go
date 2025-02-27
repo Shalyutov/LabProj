@@ -3,17 +3,13 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	yc "github.com/ydb-platform/ydb-go-yc"
 	"labproj/entities"
-	dict "labproj/entities/dictionary"
-	"labproj/entities/preanalytic"
 	"labproj/handlers"
 	"labproj/internal"
 	orm "labproj/ydb"
 	"net/http"
-	"strconv"
 )
 
 func main() {
@@ -36,56 +32,30 @@ func main() {
 	ydbOrm := orm.NewYdbOrm(db, &ctx)
 
 	var ordersRepo internal.OrderRepo = orm.OrderRepo{DB: ydbOrm}
-	referralsRepo := orm.ReferralRepo{DB: ydbOrm}
-	//patientsRepo := orm.PatientRepo{DB: ydbOrm}
-	//samplesRepo := orm.SampleRepo{DB: ydbOrm}
+	var referralsRepo internal.ReferralRepo = orm.ReferralRepo{DB: ydbOrm}
+	var patientsRepo internal.PatientRepo = orm.PatientRepo{DB: ydbOrm}
+	var samplesRepo internal.SampleRepo = orm.SampleRepo{DB: ydbOrm}
 
 	r := gin.Default()
-	r.GET("/tests/:id", func(c *gin.Context) {
-		GetTest(c, template.Tests)
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ok",
+			"version": "0.0.1",
+			"env":     "dev-alpha",
+		})
+	})
+
+	r.GET("/preanalytic", func(c *gin.Context) {
+		c.JSON(http.StatusOK, template)
 	})
 
 	handlers.ConfigureOrderEndpoints(r, &ordersRepo)
-
-	r.GET("/referrals/:id", func(c *gin.Context) {
-		referralIdParam := c.Param("id")
-		if referralIdParam == "" {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-		referralId, err := uuid.Parse(referralIdParam)
-		if err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-
-		var referral *preanalytic.Referral
-		referral, err = referralsRepo.FindById(referralId)
-		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
-		}
-		if referral == nil {
-			c.AbortWithStatus(http.StatusNotFound)
-		}
-		c.JSON(200, referral)
-	})
+	handlers.ConfigureSamplesEndpoints(r, &samplesRepo)
+	handlers.ConfigurePatientsEndpoints(r, &patientsRepo)
+	handlers.ConfigureReferralsEndpoints(r, &referralsRepo, &template)
 
 	err = r.Run()
 	if err != nil {
 		return
 	}
-}
-
-func GetTest(c *gin.Context, tests []dict.Test) {
-	index, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	if index >= int64(len(tests)) || index < 0 {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	test := tests[index]
-	c.JSON(200, test)
 }
