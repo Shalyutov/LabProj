@@ -3,6 +3,7 @@ package internal
 import (
 	"github.com/google/uuid"
 	"labproj/entities/preanalytic"
+	"time"
 )
 
 type OrderRepo interface {
@@ -19,6 +20,7 @@ type ReferralRepo interface {
 	DeleteTests(id uuid.UUID, testId []int) error
 	Delete(id uuid.UUID) error
 	GetAll() ([]preanalytic.Referral, error)
+	SendToLab(sendAt time.Time, referrals []uuid.UUID) error
 }
 
 type PatientRepo interface {

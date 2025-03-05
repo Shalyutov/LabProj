@@ -7,6 +7,7 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
 	"labproj/entities/preanalytic"
+	"time"
 )
 
 type ReferralRepo struct {
@@ -247,4 +248,23 @@ func (r ReferralRepo) GetAll() ([]preanalytic.Referral, error) {
 	}
 
 	return allReferrals, nil
+}
+
+func (r ReferralRepo) SendToLab(sendAt time.Time, referrals []uuid.UUID) error {
+	q := `
+		DECLARE $send_at AS Datetime;
+		DECLARE $referrals AS List<Uuid>;
+		UPDATE referrals
+		SET send_at = $send_at
+		WHERE id in $referrals;
+	`
+	referralsList := make([]types.Value, 0, len(referrals))
+	for _, referral := range referrals {
+		referralsList = append(referralsList, types.UuidValue(referral))
+	}
+	params := table.NewQueryParameters(
+		table.ValueParam("$send_at", types.DatetimeValueFromTime(sendAt)),
+		table.ValueParam("$referrals", types.ListValue(referralsList...)),
+	)
+	return r.DB.Execute(q, params)
 }

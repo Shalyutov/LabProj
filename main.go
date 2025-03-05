@@ -40,8 +40,8 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "ok",
-			"version": "0.0.1",
-			"env":     "dev-alpha",
+			"version": "25C1",
+			"env":     "dev",
 		})
 	})
 

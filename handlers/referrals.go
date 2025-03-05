@@ -9,6 +9,7 @@ import (
 	"labproj/internal"
 	"net/http"
 	"slices"
+	"time"
 )
 
 func ConfigureReferralsEndpoints(router *gin.Engine, repo *internal.ReferralRepo, dict *entities.MedicalDictionary) {
@@ -32,6 +33,26 @@ func ConfigureReferralsEndpoints(router *gin.Engine, repo *internal.ReferralRepo
 	})
 	router.DELETE("/referrals/:id/tests", func(c *gin.Context) {
 		DeleteReferralTests(c, *repo)
+	})
+	router.POST("/referrals/send", func(c *gin.Context) {
+		SendReferrals(c, *repo)
+	})
+}
+
+func SendReferrals(c *gin.Context, repo internal.ReferralRepo) {
+	var referrals []uuid.UUID
+	err := c.ShouldBindJSON(&referrals)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	err = repo.SendToLab(time.Now(), referrals)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
 	})
 }
 
