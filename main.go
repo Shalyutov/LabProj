@@ -54,7 +54,7 @@ func main() {
 	handlers.ConfigurePatientsEndpoints(r, &patientsRepo)
 	handlers.ConfigureReferralsEndpoints(r, &referralsRepo, &template)
 
-	err = r.Run()
+	err = r.Run(":80")
 	if err != nil {
 		return
 	}
