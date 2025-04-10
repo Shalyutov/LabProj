@@ -10,6 +10,8 @@ require (
 	google.golang.org/protobuf v1.36.5 // indirect
 )
 
+require github.com/golang-jwt/jwt/v5 v5.2.2
+
 require (
 	github.com/bytedance/sonic v1.12.8 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect

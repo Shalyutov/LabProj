@@ -1,3 +1,5 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 CREATE TABLE orders (
     id Uuid not null,
     created_at Datetime not null,
@@ -45,4 +47,16 @@ CREATE TABLE patients (
      birth_month int null,
      birth_day int null,
      PRIMARY KEY(id)
+);
+
+CREATE TABLE users (
+    username Utf8 not null,
+    full_name Utf8 null,
+    is_blocked bool null,
+    PRIMARY KEY (username)
+);
+CREATE TABLE user_scopes (
+    username Utf8 not null,
+    scope Utf8 not null,
+    PRIMARY KEY (username, scope)
 );

@@ -65,6 +65,7 @@ func (y OrderRepo) Delete(id uuid.UUID) error {
 }
 
 func (y OrderRepo) GetAll() ([]preanalytic.Order, error) {
+	//goland:noinspection ALL
 	q := `
 		SELECT
 			id, created_at, deleted_at
