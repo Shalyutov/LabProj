@@ -18,31 +18,31 @@ type MedicalDictionary struct {
 
 func TemplateMedicalDictionary() MedicalDictionary {
 	biomaterials := []dict.Biomaterial{
-		{"Венозная кровь", "Кровь из вены", 1},
+		{FullName: "Венозная кровь", ShortName: "Кровь из вены", Id: 1},
 	}
 	supplies := []dict.Supply{
-		{"Вакуумная пробирка для забора венозной крови", "Гранат Био Тех", biomaterials[0], 5.0, 5, 1},
+		{Name: "Вакуумная пробирка для забора венозной крови", Supplier: "Гранат Био Тех", Biomaterial: biomaterials[0], Volume: 5.0, TestCapacity: 5, Id: 1},
 	}
 	integerIndicators := []dict.IntegerIndicator{
-		{"Эритроциты (RBC)", "10^12/л", 6.0, 4.5, 1},
-		{"Гематокрит (HCT)", "%", 48.0, 40.0, 2},
-		{"Гемоглобин (HGB)", "г/л", 180.0, 130.0, 3},
-		{"Лейкоциты (WBC)", "10^9/л", 9.0, 4.0, 4},
-		{"Тромбоциты (PLT)", "10^9/л", 400.0, 150.0, 5},
-		{"Эозинофилы", "%", 0.0, 0.0, 6},
-		{"Лимфоциты", "%", 37.0, 19.0, 7},
-		{"Моноциты", "%", 11.0, 3.0, 8},
-		{"СОЭ по Панченкову", "мм/ч", 10.0, 2.0, 9},
+		{Name: "Эритроциты (RBC)", Measure: "10^12/л", High: 6.0, Low: 4.5, Id: 1},
+		{Name: "Гематокрит (HCT)", Measure: "%", High: 48.0, Low: 40.0, Id: 2},
+		{Name: "Гемоглобин (HGB)", Measure: "г/л", High: 180.0, Low: 130.0, Id: 3},
+		{Name: "Лейкоциты (WBC)", Measure: "10^9/л", High: 9.0, Low: 4.0, Id: 4},
+		{Name: "Тромбоциты (PLT)", Measure: "10^9/л", High: 400.0, Low: 150.0, Id: 5},
+		{Name: "Эозинофилы", Measure: "%", High: 0.0, Low: 0.0, Id: 6},
+		{Name: "Лимфоциты", Measure: "%", High: 37.0, Low: 19.0, Id: 7},
+		{Name: "Моноциты", Measure: "%", High: 11.0, Low: 3.0, Id: 8},
+		{Name: "СОЭ по Панченкову", Measure: "мм/ч", High: 10.0, Low: 2.0, Id: 9},
 	}
 	binaryIndicators := make([]dict.BinaryIndicator, 0)
 	stringIndicators := make([]dict.StringIndicator, 0)
 	services := []dict.Service{
-		{"Забор венозной крови", 350.0, 1},
+		{Name: "Забор венозной крови", Price: 350.0, Id: 1},
 	}
 	tests := []dict.Test{
-		{"Общий анализ крови", []string{"ОАК"}, integerIndicators[0:5], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 200.0, 1},
-		{"Лейкоцитарная формула", []string{"Лейкоформула"}, integerIndicators[5:8], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 150.0, 2},
-		{"СОЭ", []string{"Сахар", "Диабет"}, integerIndicators[8:], binaryIndicators[0:], stringIndicators[0:], services[0:], supplies[0:], false, 100.0, 3},
+		{Name: "Общий анализ крови", Aliases: []string{"ОАК"}, IntegerIndicators: integerIndicators[0:5], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 200.0, Id: 1},
+		{Name: "Лейкоцитарная формула", Aliases: []string{"Лейкоформула"}, IntegerIndicators: integerIndicators[5:8], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 150.0, Id: 2},
+		{Name: "СОЭ", Aliases: []string{"Сахар", "Диабет"}, IntegerIndicators: integerIndicators[8:], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 100.0, Id: 3},
 	}
 	return MedicalDictionary{biomaterials, supplies, integerIndicators, binaryIndicators, stringIndicators, services, tests}
 }
