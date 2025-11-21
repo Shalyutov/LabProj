@@ -46,9 +46,7 @@ CREATE TABLE patients (
      representative Utf8 null,
      document Uint64 null,
      phone Uint64 null,
-     birth_year int null,
-     birth_month int null,
-     birth_day int null,
+     birth_date Date32 null,
      PRIMARY KEY(id)
 );
 --laboratory

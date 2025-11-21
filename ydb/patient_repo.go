@@ -1,12 +1,13 @@
 package ydb
 
 import (
+	"labproj/entities/preanalytic"
+
 	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/query"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
-	"labproj/entities/preanalytic"
 )
 
 type PatientRepo struct {
@@ -24,13 +25,11 @@ func (p PatientRepo) Save(patient preanalytic.Patient) error {
 		DECLARE $representative AS Utf8?;
 		DECLARE $document AS Uint64?;
 		DECLARE $phone AS Uint64?;
-		DECLARE $birth_year AS Int?;
-		DECLARE $birth_month AS Int?;
-		DECLARE $birth_day AS Int?;
+		DECLARE $birth_date AS Date32?;
 		UPSERT INTO patients ( id, surname, name, lastname, gender, email, 
-			representative, document, phone, birth_year, birth_month, birth_day )
+			representative, document, phone, birth_date)
 		VALUES ( $id, $surname, $name, $lastname, $gender, $email, 
-			$representative, $document, $phone, $birth_year, $birth_month, $birth_day );
+			$representative, $document, $phone, $birth_date);
 	`
 	params := table.NewQueryParameters(
 		table.ValueParam("$id", types.UuidValue(patient.Id)),
@@ -42,9 +41,7 @@ func (p PatientRepo) Save(patient preanalytic.Patient) error {
 		table.ValueParam("$representative", types.NullableUTF8Value(patient.Representative)),
 		table.ValueParam("$document", types.NullableUint64Value(patient.Document)),
 		table.ValueParam("$phone", types.NullableUint64Value(patient.Phone)),
-		table.ValueParam("$birth_year", types.NullableInt32Value(patient.BirthYear)),
-		table.ValueParam("$birth_month", types.NullableInt32Value(patient.BirthMonth)),
-		table.ValueParam("$birth_day", types.NullableInt32Value(patient.BirthDay)),
+		table.ValueParam("$birth_date", types.NullableDate32ValueFromTime(patient.BirthDate)),
 	)
 	return p.DB.Execute(q, params)
 }
@@ -54,7 +51,7 @@ func (p PatientRepo) FindById(id uuid.UUID) (*preanalytic.Patient, error) {
 		DECLARE $id AS Uuid;
 		SELECT
 			id, surname, name, lastname, gender, email, 
-			representative, document, phone, birth_year, birth_month, birth_day
+			representative, document, phone, birth_date
 		FROM
 			patients
 		WHERE 
@@ -79,7 +76,7 @@ func (p PatientRepo) GetAll() ([]preanalytic.Patient, error) {
 	q := `
 		SELECT
 			id, surname, name, lastname, gender, email, 
-			representative, document, phone, birth_year, birth_month, birth_day
+			representative, document, phone, birth_date
 		FROM
 			patients
 	`
