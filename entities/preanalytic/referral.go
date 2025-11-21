@@ -1,8 +1,9 @@
 package preanalytic
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Referral struct {
@@ -18,6 +19,7 @@ type BaseReferral struct {
 	IssuedAt      time.Time  `sql:"issued_at" json:"IssuedAt" binding:"required"`
 	DeletedAt     *time.Time `sql:"deleted_at" json:"DeletedAt"`
 	SendAt        *time.Time `sql:"send_at" json:"SendAt"`
+	AcceptedAt    *time.Time `sql:"accepted_at" json:"AcceptedAt"`
 	Height        *float32   `sql:"height" json:"Height"`
 	Weight        *float32   `sql:"weight" json:"Weight"`
 	TickBite      *bool      `sql:"tick_bite" json:"TickBite"`

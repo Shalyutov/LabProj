@@ -14,9 +14,13 @@ type MedicalDictionary struct {
 	StringIndicators  []dict.StringIndicator
 	Services          []dict.Service
 	Tests             []dict.Test
+	Equipment         []dict.Eqiupment
 }
 
 func TemplateMedicalDictionary() MedicalDictionary {
+	equipment := []dict.Eqiupment{
+		{Name: "Test System", Id: 1},
+	}
 	biomaterials := []dict.Biomaterial{
 		{FullName: "Венозная кровь", ShortName: "Кровь из вены", Id: 1},
 	}
@@ -44,7 +48,7 @@ func TemplateMedicalDictionary() MedicalDictionary {
 		{Name: "Лейкоцитарная формула", Aliases: []string{"Лейкоформула"}, IntegerIndicators: integerIndicators[5:8], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 150.0, Id: 2},
 		{Name: "СОЭ", Aliases: []string{"Сахар", "Диабет"}, IntegerIndicators: integerIndicators[8:], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 100.0, Id: 3},
 	}
-	return MedicalDictionary{biomaterials, supplies, integerIndicators, binaryIndicators, stringIndicators, services, tests}
+	return MedicalDictionary{biomaterials, supplies, integerIndicators, binaryIndicators, stringIndicators, services, tests, equipment}
 }
 
 func (m MedicalDictionary) Calculate(tests []dict.Test) float64 {

@@ -1,6 +1,7 @@
 package ydb
 
 import (
+	"labproj/entities/lab"
 	"labproj/entities/preanalytic"
 )
 
@@ -14,5 +15,5 @@ type UserScope struct {
 }
 
 type Annotated interface {
-	preanalytic.Order | preanalytic.BaseReferral | preanalytic.Patient | preanalytic.ReferralTest | preanalytic.ReferralSample | preanalytic.Sample | User | UserScope
+	preanalytic.Order | preanalytic.BaseReferral | preanalytic.Patient | preanalytic.ReferralTest | preanalytic.ReferralSample | preanalytic.Sample | User | UserScope | lab.BaseWorkUnit
 }

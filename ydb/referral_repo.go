@@ -1,13 +1,14 @@
 package ydb
 
 import (
+	"labproj/entities/preanalytic"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/query"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
-	"labproj/entities/preanalytic"
-	"time"
 )
 
 type ReferralRepo struct {
@@ -51,10 +52,11 @@ func (r ReferralRepo) SaveReferral(referral preanalytic.BaseReferral) error {
 		DECLARE $tick_bite AS Bool?;
 		DECLARE $hiv_status AS Int?;
 		DECLARE $pregnancy_week AS Int?;
+		DECLARE $accepted_at AS Datetime?;
 		UPSERT INTO referrals ( id, order_id, patient_id, issued_at, send_at, deleted_at, 
-			height, weight, tick_bite, hiv_status, pregnancy_week )
+			height, weight, tick_bite, hiv_status, pregnancy_week, accepted_at )
 		VALUES ( $id, $order_id, $patient_id, $issued_at, $send_at, $deleted_at, 
-			$height, $weight, $tick_bite, $hiv_status, $pregnancy_week );
+			$height, $weight, $tick_bite, $hiv_status, $pregnancy_week, $accepted_at );
 	`
 	params := table.NewQueryParameters(
 		table.ValueParam("$id", types.UuidValue(referral.Id)),
@@ -68,6 +70,7 @@ func (r ReferralRepo) SaveReferral(referral preanalytic.BaseReferral) error {
 		table.ValueParam("$tick_bite", types.NullableBoolValue(referral.TickBite)),
 		table.ValueParam("$hiv_status", types.NullableInt32Value(referral.HIVStatus)),
 		table.ValueParam("$pregnancy_week", types.NullableInt32Value(referral.PregnancyWeek)),
+		table.ValueParam("$accepted_at", types.NullableDatetimeValueFromTime(referral.AcceptedAt)),
 	)
 	return r.DB.Execute(q, params)
 }
@@ -77,7 +80,8 @@ func (r ReferralRepo) FindById(id uuid.UUID) (*preanalytic.Referral, error) {
 		DECLARE $id AS Uuid;
 		SELECT
 			id, issued_at, order_id, hiv_status, patient_id, 
-			deleted_at, send_at, height, weight, tick_bite, pregnancy_week
+			deleted_at, send_at, height, weight, tick_bite, pregnancy_week,
+			accepted_at
 		FROM
 			referrals
 		WHERE 
@@ -183,7 +187,8 @@ func (r ReferralRepo) GetAll() ([]preanalytic.Referral, error) {
 	q := `
 		SELECT
 			id, issued_at, order_id, hiv_status, patient_id, 
-			deleted_at, send_at, height, weight, tick_bite, pregnancy_week
+			deleted_at, send_at, height, weight, tick_bite, pregnancy_week, 
+			accepted_at
 		FROM
 			referrals
 	`

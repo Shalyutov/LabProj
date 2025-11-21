@@ -1,12 +1,13 @@
 package ydb
 
 import (
+	"labproj/entities/preanalytic"
+
 	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/query"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
-	"labproj/entities/preanalytic"
 )
 
 type OrderRepo struct {
@@ -17,12 +18,16 @@ func (y OrderRepo) Save(order preanalytic.Order) error {
 	q := `
 	  DECLARE $id AS Uuid;
 	  DECLARE $created AS Datetime;
-	  UPSERT INTO orders ( id, created_at )
-	  VALUES ( $id, $created );
+	  DECLARE $deleted AS Datetime?;
+	  DECLARE $paid AS Datetime?;
+	  UPSERT INTO orders ( id, created_at, deleted_at, paid_at )
+	  VALUES ( $id, $created, $deleted, $paid );
 	`
 	params := table.NewQueryParameters(
 		table.ValueParam("$id", types.UuidValue(order.Id)),
 		table.ValueParam("$created", types.DatetimeValueFromTime(order.CreatedAt)),
+		table.ValueParam("$deleted", types.NullableDatetimeValueFromTime(order.DeletedAt)),
+		table.ValueParam("$paid", types.NullableDatetimeValueFromTime(order.PaidAt)),
 	)
 	return y.DB.Execute(q, params)
 }
@@ -31,7 +36,7 @@ func (y OrderRepo) FindById(id uuid.UUID) (*preanalytic.Order, error) {
 	q := `
 		DECLARE $id AS Uuid;
 		SELECT
-			id, created_at, deleted_at
+			id, created_at, deleted_at, paid_at
 		FROM
 			orders
 		WHERE 
@@ -68,7 +73,7 @@ func (y OrderRepo) GetAll() ([]preanalytic.Order, error) {
 	//goland:noinspection ALL
 	q := `
 		SELECT
-			id, created_at, deleted_at
+			id, created_at, deleted_at, paid_at
 		FROM
 			orders
 	`
