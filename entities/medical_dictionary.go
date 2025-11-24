@@ -7,14 +7,12 @@ import (
 )
 
 type MedicalDictionary struct {
-	Biomaterials      []dict.Biomaterial
-	Supplies          []dict.Supply
-	IntegerIndicators []dict.IntegerIndicator
-	BinaryIndicators  []dict.BinaryIndicator
-	StringIndicators  []dict.StringIndicator
-	Services          []dict.Service
-	Tests             []dict.Test
-	Equipment         []dict.Eqiupment
+	Biomaterials []dict.Biomaterial
+	Supplies     []dict.Supply
+	Indicators   []dict.Indicator
+	Services     []dict.Service
+	Tests        []dict.Test
+	Equipment    []dict.Eqiupment
 }
 
 func TemplateMedicalDictionary() MedicalDictionary {
@@ -27,28 +25,26 @@ func TemplateMedicalDictionary() MedicalDictionary {
 	supplies := []dict.Supply{
 		{Name: "Вакуумная пробирка для забора венозной крови", Supplier: "Гранат Био Тех", Biomaterial: biomaterials[0], Volume: 5.0, TestCapacity: 5, Id: 1},
 	}
-	integerIndicators := []dict.IntegerIndicator{
-		{Name: "Эритроциты (RBC)", Measure: "10^12/л", High: 6.0, Low: 4.5, Id: 1},
-		{Name: "Гематокрит (HCT)", Measure: "%", High: 48.0, Low: 40.0, Id: 2},
-		{Name: "Гемоглобин (HGB)", Measure: "г/л", High: 180.0, Low: 130.0, Id: 3},
-		{Name: "Лейкоциты (WBC)", Measure: "10^9/л", High: 9.0, Low: 4.0, Id: 4},
-		{Name: "Тромбоциты (PLT)", Measure: "10^9/л", High: 400.0, Low: 150.0, Id: 5},
-		{Name: "Эозинофилы", Measure: "%", High: 0.0, Low: 0.0, Id: 6},
-		{Name: "Лимфоциты", Measure: "%", High: 37.0, Low: 19.0, Id: 7},
-		{Name: "Моноциты", Measure: "%", High: 11.0, Low: 3.0, Id: 8},
-		{Name: "СОЭ по Панченкову", Measure: "мм/ч", High: 10.0, Low: 2.0, Id: 9},
+	indicators := []dict.Indicator{
+		{Name: "Эритроциты (RBC)", Measure: "10^12/л", HighReference: 6.0, LowReference: 4.5, Id: 1},
+		{Name: "Гематокрит (HCT)", Measure: "%", HighReference: 48.0, LowReference: 40.0, Id: 2},
+		{Name: "Гемоглобин (HGB)", Measure: "г/л", HighReference: 180.0, LowReference: 130.0, Id: 3},
+		{Name: "Лейкоциты (WBC)", Measure: "10^9/л", HighReference: 9.0, LowReference: 4.0, Id: 4},
+		{Name: "Тромбоциты (PLT)", Measure: "10^9/л", HighReference: 400.0, LowReference: 150.0, Id: 5},
+		{Name: "Эозинофилы", Measure: "%", HighReference: 0.0, LowReference: 0.0, Id: 6},
+		{Name: "Лимфоциты", Measure: "%", HighReference: 37.0, LowReference: 19.0, Id: 7},
+		{Name: "Моноциты", Measure: "%", HighReference: 11.0, LowReference: 3.0, Id: 8},
+		{Name: "СОЭ по Панченкову", Measure: "мм/ч", HighReference: 10.0, LowReference: 2.0, Id: 9},
 	}
-	binaryIndicators := make([]dict.BinaryIndicator, 0)
-	stringIndicators := make([]dict.StringIndicator, 0)
 	services := []dict.Service{
 		{Name: "Забор венозной крови", Price: 350.0, Id: 1},
 	}
 	tests := []dict.Test{
-		{Name: "Общий анализ крови", Aliases: []string{"ОАК"}, IntegerIndicators: integerIndicators[0:5], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 200.0, Id: 1},
-		{Name: "Лейкоцитарная формула", Aliases: []string{"Лейкоформула"}, IntegerIndicators: integerIndicators[5:8], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 150.0, Id: 2},
-		{Name: "СОЭ", Aliases: []string{"Сахар", "Диабет"}, IntegerIndicators: integerIndicators[8:], BinaryIndicators: binaryIndicators[0:], StringIndicators: stringIndicators[0:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 100.0, Id: 3},
+		{Name: "Общий анализ крови", Aliases: []string{"ОАК"}, Indicators: indicators[0:5], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 200.0, Id: 1},
+		{Name: "Лейкоцитарная формула", Aliases: []string{"Лейкоформула"}, Indicators: indicators[5:8], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 150.0, Id: 2},
+		{Name: "СОЭ", Aliases: []string{"Сахар", "Диабет"}, Indicators: indicators[8:], Services: services[0:], Cases: supplies[0:], IsSeparated: false, Price: 100.0, Id: 3},
 	}
-	return MedicalDictionary{biomaterials, supplies, integerIndicators, binaryIndicators, stringIndicators, services, tests, equipment}
+	return MedicalDictionary{biomaterials, supplies, indicators, services, tests, equipment}
 }
 
 func (m MedicalDictionary) Calculate(tests []dict.Test) float64 {
